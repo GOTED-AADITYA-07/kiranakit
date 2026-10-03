@@ -1,0 +1,11 @@
+{
+  "appId": "com.kiranakit.app",
+  "appName": "KiranaKit",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

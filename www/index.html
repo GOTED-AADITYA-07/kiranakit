@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="description" content="KiranaKit — Simple inventory and billing for kirana stores and small retailers. Voice input, GST billing, stock tracking." />
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <title>KiranaKit — किराना किट</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>" />
+
+  <!-- Google Fonts: Noto Sans for Latin + Devanagari -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       SPLASH / LOADING SCREEN
+  ============================================================ -->
+  <div id="splash" class="splash" aria-hidden="true">
+    <div class="splash-logo">
+      <span class="splash-icon">🏪</span>
+      <h1 class="splash-title">KiranaKit</h1>
+      <p class="splash-sub">किराना किट</p>
+    </div>
+    <div class="splash-loader">
+      <div class="loader-bar"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MAIN APP WRAPPER
+  ============================================================ -->
+  <div id="app" class="app hidden">
+
+    <!-- ── TOP HEADER ── -->
+    <header class="app-header">
+      <div class="header-left">
+        <span class="header-icon">🏪</span>
+        <div class="header-text">
+          <span class="header-title">KiranaKit</span>
+          <span class="header-store" id="store-name">My Store</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="btn-lang-toggle" class="btn-icon" data-i18n-title="toggle_lang" data-i18n-aria="toggle_lang" title="Toggle Language" aria-label="Toggle Hindi/English">EN</button>
+        <button id="btn-settings" class="btn-icon" data-i18n-title="settings" data-i18n-aria="settings" title="Settings" aria-label="Settings">⚙️</button>
+      </div>
+    </header>
+
+    <!-- ── TAB CONTENT PANELS ── -->
+    <main class="app-main">
+
+      <!-- ========== INVENTORY TAB ========== -->
+      <section id="tab-inventory" class="tab-panel active" role="tabpanel" aria-labelledby="nav-inventory">
+
+        <!-- Search + Add Bar -->
+        <div class="panel-toolbar">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input
+              type="search"
+              id="inventory-search"
+              class="search-input"
+              placeholder="Search items..."
+              data-i18n-placeholder="search_items"
+              data-i18n-aria="search_inventory"
+              aria-label="Search inventory"
+              autocomplete="off"
+            />
+          </div>
+          <button id="btn-voice-inventory" class="btn-voice" data-i18n-title="voice_search" data-i18n-aria="voice_search" title="Voice Search" aria-label="Voice search">🎙️</button>
+          <button id="btn-add-product" class="btn-primary" data-i18n="btn_add" data-i18n-aria="aria_add_product" aria-label="Add new product">+ Add</button>
+        </div>
+
+        <!-- Category Filter Pills -->
+        <div class="category-pills" id="category-pills" role="group" data-i18n-aria="filter_category" aria-label="Filter by category">
+          <button class="pill active" data-category="all" data-i18n="cat_all">All</button>
+          <button class="pill" data-category="grains" data-i18n="cat_grains">Grains</button>
+          <button class="pill" data-category="dairy" data-i18n="cat_dairy">Dairy</button>
+          <button class="pill" data-category="snacks" data-i18n="cat_snacks">Snacks</button>
+          <button class="pill" data-category="beverages" data-i18n="cat_beverages">Beverages</button>
+          <button class="pill" data-category="spices" data-i18n="cat_spices">Spices</button>
+          <button class="pill" data-category="cleaning" data-i18n="cat_cleaning">Cleaning</button>
+          <button class="pill" data-category="other" data-i18n="cat_other">Other</button>
+        </div>
+
+        <!-- Low Stock Alert Banner -->
+        <div id="low-stock-banner" class="alert-banner hidden" role="alert">
+          <span class="alert-icon">⚠️</span>
+          <span id="low-stock-text">3 items are running low on stock</span>
+          <button class="alert-dismiss" id="dismiss-low-stock" data-i18n-aria="dismiss" aria-label="Dismiss">✕</button>
+        </div>
+
+        <!-- Product Grid -->
+        <div id="product-list" class="product-grid" role="list" data-i18n-aria="product_inventory" aria-label="Product inventory">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="inventory-empty" class="empty-state hidden">
+          <span class="empty-icon">📦</span>
+          <h3 class="empty-title" data-i18n="empty_inventory_title">No products yet</h3>
+          <p class="empty-sub" data-i18n="empty_inventory_sub">Tap "+ Add" or use 🎙️ voice to add your first item</p>
+        </div>
+
+      </section>
+
+      <!-- ========== BILLING TAB ========== -->
+      <section id="tab-billing" class="tab-panel" role="tabpanel" aria-labelledby="nav-billing" aria-hidden="true">
+
+        <!-- Bill Toolbar -->
+        <div class="panel-toolbar">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input
+              type="search"
+              id="billing-search"
+              class="search-input"
+              placeholder="Search & add to bill..."
+              data-i18n-placeholder="search_bill"
+              data-i18n-aria="search_bill_aria"
+              aria-label="Search products to add to bill"
+              autocomplete="off"
+            />
+          </div>
+          <button id="btn-voice-billing" class="btn-voice" data-i18n-title="voice_add_bill" data-i18n-aria="voice_add_bill" title="Voice Add to Bill" aria-label="Voice add to bill">🎙️</button>
+        </div>
+
+        <!-- Quick Product Suggestions (while searching) -->
+        <div id="billing-suggestions" class="suggestions-dropdown hidden" role="listbox" data-i18n-aria="product_suggestions" aria-label="Product suggestions">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Cart / Bill Items -->
+        <div class="bill-section">
+          <div class="bill-header">
+            <h2 class="section-title" data-i18n="current_bill">🧾 Current Bill</h2>
+            <div class="bill-meta">
+              <span id="bill-date" class="bill-date"></span>
+              <span id="bill-number" class="bill-number">#0001</span>
+            </div>
+          </div>
+
+          <div id="cart-items" class="cart-list" role="list" data-i18n-aria="cart_items" aria-label="Cart items">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Empty Cart State -->
+          <div id="cart-empty" class="empty-state">
+            <span class="empty-icon">🛒</span>
+            <h3 class="empty-title" data-i18n="cart_empty_title">Cart is empty</h3>
+            <p class="empty-sub" data-i18n="cart_empty_sub">Search above or tap a product to add it</p>
+          </div>
+
+          <!-- GST & Totals -->
+          <div id="bill-totals" class="bill-totals hidden">
+            <div class="total-row">
+              <span data-i18n="subtotal">Subtotal</span>
+              <span id="subtotal-val">₹0.00</span>
+            </div>
+            <div class="total-row gst-row">
+              <div class="gst-label-wrap">
+                <span data-i18n="gst">GST</span>
+                <select id="gst-select" class="gst-select" data-i18n-aria="select_gst" aria-label="Select GST rate">
+                  <option value="0" data-i18n="gst_none">None (0%)</option>
+                  <option value="5">5%</option>
+                  <option value="12">12%</option>
+                  <option value="18">18%</option>
+                  <option value="28">28%</option>
+                </select>
+              </div>
+              <span id="gst-val">₹0.00</span>
+            </div>
+            <div class="total-row total-final">
+              <span data-i18n="total">Total</span>
+              <span id="total-val">₹0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment + Action Buttons -->
+        <div id="bill-actions" class="bill-actions hidden">
+          <div class="payment-methods">
+            <span class="payment-label" data-i18n="payment">Payment:</span>
+            <div class="payment-btns" role="group" data-i18n-aria="payment_method" aria-label="Payment method">
+              <button class="pay-btn active" data-method="cash"><span data-i18n="pay_cash">💵 Cash</span></button>
+              <button class="pay-btn" data-method="upi"><span data-i18n="pay_upi">📲 UPI</span></button>
+              <button class="pay-btn" data-method="credit"><span data-i18n="pay_credit">📒 Khata</span></button>
+            </div>
+          </div>
+          <div class="action-row">
+            <button id="btn-clear-bill" class="btn-secondary" data-i18n="clear_bill">🗑️ Clear</button>
+            <button id="btn-finalize-bill" class="btn-primary btn-large" data-i18n="finalize_bill">✅ Finalize Bill</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========== REPORTS TAB ========== -->
+      <section id="tab-reports" class="tab-panel" role="tabpanel" aria-labelledby="nav-reports" aria-hidden="true">
+
+        <!-- Date Range Filter -->
+        <div class="panel-toolbar reports-toolbar">
+          <div class="period-pills" role="group" data-i18n-aria="report_period" aria-label="Report period">
+            <button class="pill active" data-period="today" data-i18n="period_today">Today</button>
+            <button class="pill" data-period="week" data-i18n="period_week">This Week</button>
+            <button class="pill" data-period="month" data-i18n="period_month">This Month</button>
+          </div>
+          <button id="btn-export" class="btn-icon-text" data-i18n-title="export" title="Export data"><span data-i18n="export_btn">📤 Export</span></button>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card" id="kpi-sales">
+            <span class="kpi-icon">💰</span>
+            <div class="kpi-body">
+              <span class="kpi-label" data-i18n="kpi_sales">Total Sales</span>
+              <span class="kpi-value" id="kpi-sales-val">₹0</span>
+            </div>
+          </div>
+          <div class="kpi-card" id="kpi-bills">
+            <span class="kpi-icon">🧾</span>
+            <div class="kpi-body">
+              <span class="kpi-label" data-i18n="kpi_bills">Bills Generated</span>
+              <span class="kpi-value" id="kpi-bills-val">0</span>
+            </div>
+          </div>
+          <div class="kpi-card" id="kpi-avg">
+            <span class="kpi-icon">📊</span>
+            <div class="kpi-body">
+              <span class="kpi-label" data-i18n="kpi_avg">Avg Bill Value</span>
+              <span class="kpi-value" id="kpi-avg-val">₹0</span>
+            </div>
+          </div>
+          <div class="kpi-card" id="kpi-lowstock">
+            <span class="kpi-icon">⚠️</span>
+            <div class="kpi-body">
+              <span class="kpi-label" data-i18n="kpi_lowstock">Low Stock Items</span>
+              <span class="kpi-value" id="kpi-lowstock-val">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Khata / Credit ledger -->
+        <div class="report-card" id="khata-card">
+          <h3 class="section-title" data-i18n="khata_title">📒 Khata</h3>
+          <div class="khata-summary">
+            <span class="kpi-label" data-i18n="khata_outstanding">Outstanding</span>
+            <span class="kpi-value" id="khata-outstanding-val">₹0.00</span>
+          </div>
+          <div id="khata-due-list" class="khata-list">
+            <!-- Populated by JS -->
+          </div>
+          <h4 class="khata-settled-heading" data-i18n="khata_settled_heading">Settled</h4>
+          <div id="khata-settled-list" class="khata-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Top Selling Products -->
+        <div class="report-card">
+          <h3 class="section-title" data-i18n="top_selling">🏆 Top Selling Items</h3>
+          <div id="top-products-list" class="top-products">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Simple Sales Bar Chart -->
+        <div class="report-card">
+          <h3 class="section-title" data-i18n="sales_overview">📈 Sales Overview</h3>
+          <canvas id="sales-chart" width="340" height="160" data-i18n-aria="sales_chart" aria-label="Sales bar chart"></canvas>
+        </div>
+
+        <!-- Low Stock List -->
+        <div class="report-card">
+          <h3 class="section-title" data-i18n="low_stock_alerts">⚠️ Low Stock Alerts</h3>
+          <div id="low-stock-list" class="low-stock-report">
+            <!-- Populated by JS -->
+          </div>
+          <div id="low-stock-report-empty" class="empty-inline hidden">
+            <span data-i18n="all_stocked">✅ All items well-stocked!</span>
+          </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="report-card">
+          <h3 class="section-title" data-i18n="recent_bills">🕐 Recent Bills</h3>
+          <div id="recent-bills-list" class="recent-bills">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ── BOTTOM NAVIGATION ── -->
+    <nav class="bottom-nav" role="tablist" data-i18n-aria="main_nav" aria-label="Main navigation">
+      <button id="nav-inventory" class="nav-item active" role="tab" aria-selected="true" aria-controls="tab-inventory" data-tab="inventory">
+        <span class="nav-icon">📦</span>
+        <span class="nav-label" data-i18n="nav_inventory">Inventory</span>
+      </button>
+      <button id="nav-billing" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-billing" data-tab="billing">
+        <span class="nav-icon">🧾</span>
+        <span class="nav-label" data-i18n="nav_billing">Billing</span>
+      </button>
+      <button id="nav-reports" class="nav-item" role="tab" aria-selected="false" aria-controls="tab-reports" data-tab="reports">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label" data-i18n="nav_reports">Reports</span>
+      </button>
+    </nav>
+
+  </div><!-- /#app -->
+
+  <!-- ============================================================
+       MODALS
+  ============================================================ -->
+
+  <!-- Add / Edit Product Modal -->
+  <div id="modal-product" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-product-title">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h2 id="modal-product-title" class="modal-title">Add Product</h2>
+
+      <form id="product-form" class="product-form" novalidate>
+        <input type="hidden" id="product-id" />
+
+        <div class="form-group">
+          <label for="product-name" class="form-label"><span data-i18n="product_name">Product Name</span> <span class="required">*</span></label>
+          <input type="text" id="product-name" class="form-input" placeholder="e.g. Basmati Rice" data-i18n-placeholder="ph_product_name" required autocomplete="off" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="product-price" class="form-label"><span data-i18n="price">Price (₹)</span> <span class="required">*</span></label>
+            <input type="number" id="product-price" class="form-input" placeholder="0.00" min="0" step="0.01" required />
+          </div>
+          <div class="form-group flex-1">
+            <label for="product-stock" class="form-label"><span data-i18n="stock">Stock</span> <span class="required">*</span></label>
+            <input type="number" id="product-stock" class="form-input" placeholder="0" min="0" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="product-unit" class="form-label" data-i18n="unit">Unit</label>
+            <select id="product-unit" class="form-input form-select">
+              <option value="piece" data-i18n="unit_piece">Piece</option>
+              <option value="kg" data-i18n="unit_kg">Kg</option>
+              <option value="gram" data-i18n="unit_gram">Gram</option>
+              <option value="litre" data-i18n="unit_litre">Litre</option>
+              <option value="ml" data-i18n="unit_ml">ml</option>
+              <option value="pack" data-i18n="unit_pack">Pack</option>
+              <option value="dozen" data-i18n="unit_dozen">Dozen</option>
+              <option value="box" data-i18n="unit_box">Box</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="product-category" class="form-label" data-i18n="category">Category</label>
+            <select id="product-category" class="form-input form-select">
+              <option value="grains" data-i18n="cat_grains">Grains</option>
+              <option value="dairy" data-i18n="cat_dairy">Dairy</option>
+              <option value="snacks" data-i18n="cat_snacks">Snacks</option>
+              <option value="beverages" data-i18n="cat_beverages">Beverages</option>
+              <option value="spices" data-i18n="cat_spices">Spices</option>
+              <option value="cleaning" data-i18n="cat_cleaning">Cleaning</option>
+              <option value="other" data-i18n="cat_other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="product-low-threshold" class="form-label" data-i18n="low_stock_alert">Low Stock Alert (below)</label>
+          <input type="number" id="product-low-threshold" class="form-input" placeholder="e.g. 5" data-i18n-placeholder="ph_low_stock" min="0" value="5" />
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="btn-cancel-product" class="btn-secondary" data-i18n="cancel">Cancel</button>
+          <button type="submit" id="btn-save-product" class="btn-primary" data-i18n="save_product">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Khata customer name -->
+  <div id="modal-khata" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-khata-title">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h2 id="modal-khata-title" class="modal-title" data-i18n="khata_customer_title">📒 Khata customer</h2>
+      <p class="khata-modal-hint" data-i18n="khata_customer_hint">Enter the customer name to save this bill on their credit account.</p>
+      <form id="khata-form" class="product-form" novalidate>
+        <div class="form-group">
+          <label for="khata-customer-name" class="form-label"><span data-i18n="customer_name">Customer Name</span> <span class="required">*</span></label>
+          <input type="text" id="khata-customer-name" class="form-input" placeholder="e.g. Ramesh" data-i18n-placeholder="ph_customer_name" required autocomplete="off" />
+        </div>
+        <div class="form-actions">
+          <button type="button" id="btn-cancel-khata" class="btn-secondary" data-i18n="cancel">Cancel</button>
+          <button type="submit" id="btn-save-khata" class="btn-primary" data-i18n="save_khata">Save to Khata</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Receipt / Bill Preview Modal -->
+  <div id="modal-receipt" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-receipt-title">
+    <div class="modal-sheet modal-receipt-sheet">
+      <div class="modal-handle"></div>
+      <h2 id="modal-receipt-title" class="modal-title" data-i18n="receipt_title">🧾 Receipt</h2>
+
+      <!-- Thermal-style receipt -->
+      <div id="receipt-content" class="receipt-thermal">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="receipt-actions">
+        <button id="btn-print-receipt" class="btn-secondary" data-i18n="print">🖨️ Print</button>
+        <button id="btn-share-receipt" class="btn-primary" data-i18n="share_wa">📲 Share (WhatsApp)</button>
+        <button id="btn-new-bill" class="btn-ghost" data-i18n="new_bill">+ New Bill</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="modal-settings" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-settings-title">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h2 id="modal-settings-title" class="modal-title" data-i18n="settings_title">⚙️ Settings</h2>
+
+      <div class="settings-list">
+        <div class="settings-group">
+          <label class="settings-label" for="setting-store-name" data-i18n="store_name">Store Name</label>
+          <input type="text" id="setting-store-name" class="form-input" placeholder="My Kirana Store" data-i18n-placeholder="ph_store_name" />
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" for="setting-owner-name" data-i18n="owner_name">Owner Name</label>
+          <input type="text" id="setting-owner-name" class="form-input" placeholder="Ramesh Gupta" data-i18n-placeholder="ph_owner_name" />
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" for="setting-phone" data-i18n="phone_upi">Phone / UPI</label>
+          <input type="tel" id="setting-phone" class="form-input" placeholder="9876543210" />
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" for="setting-address" data-i18n="address">Address</label>
+          <textarea id="setting-address" class="form-input form-textarea" placeholder="Shop No. 1, Main Market..." data-i18n-placeholder="ph_address"></textarea>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" for="setting-gstin" data-i18n="gstin">GSTIN (optional)</label>
+          <input type="text" id="setting-gstin" class="form-input" placeholder="22AAAAA0000A1Z5" />
+        </div>
+      </div>
+
+      <div class="settings-danger-zone">
+        <h4 class="danger-title" data-i18n="data_management">⚠️ Data Management</h4>
+        <button id="btn-export-data" class="btn-secondary btn-full" data-i18n="export_json">📤 Export All Data (JSON)</button>
+        <button id="btn-import-data" class="btn-secondary btn-full" data-i18n="import_data">📥 Import Data</button>
+        <button id="btn-clear-data" class="btn-danger btn-full" data-i18n="clear_all_data">🗑️ Clear All Data</button>
+      </div>
+
+      <div class="form-actions">
+        <button id="btn-cancel-settings" class="btn-ghost" data-i18n="cancel">Cancel</button>
+        <button id="btn-save-settings" class="btn-primary" data-i18n="save_settings">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voice Listening Overlay -->
+  <div id="voice-overlay" class="voice-overlay hidden" role="status" aria-live="polite">
+    <div class="voice-modal">
+      <div class="voice-ripple">
+        <div class="ripple r1"></div>
+        <div class="ripple r2"></div>
+        <div class="ripple r3"></div>
+        <span class="voice-mic">🎙️</span>
+      </div>
+      <p class="voice-listening-text" data-i18n="listening">Listening...</p>
+      <p id="voice-transcript" class="voice-transcript">Say something like: "Add 5 kg sugar"</p>
+      <button id="btn-stop-voice" class="btn-secondary" data-i18n="stop">Stop</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden" role="alert" aria-live="polite"></div>
+
+  <!-- Hidden file input for import -->
+  <input type="file" id="import-file-input" accept=".json" class="hidden" aria-hidden="true" />
+
+  <script src="app.js"></script>
+</body>
+</html>

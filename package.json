@@ -1,0 +1,19 @@
+{
+  "name": "kiranakit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline-first inventory and billing for Indian kirana stores",
+  "scripts": {
+    "android:add": "npx cap add android",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:build": "cd android && gradlew.bat assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/core": "^7.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3"
+  }
+}

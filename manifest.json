@@ -1,0 +1,20 @@
+{
+  "name": "KiranaKit — किराना किट",
+  "short_name": "KiranaKit",
+  "description": "Simple inventory and billing for kirana stores",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f1a",
+  "theme_color": "#1a1a2e",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "en-IN",
+  "prefer_related_applications": false
+}

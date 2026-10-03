@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">KiranaKit</string>
+    <string name="title_activity_main">KiranaKit</string>
+    <string name="package_name">com.kiranakit.app</string>
+    <string name="custom_url_scheme">com.kiranakit.app</string>
+</resources>
